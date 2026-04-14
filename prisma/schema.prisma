@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Bitacora {
+  id           Int       @id @default(autoincrement())
+  idUsuario    Int?
+  fechaIngreso DateTime  @default(now())
+  fechaSalida  DateTime?
+  Usuario      Usuario?  @relation(fields: [idUsuario], references: [id])
+}
+
+model CategoriaHabitacion {
+  id              Int          @id @default(autoincrement())
+  nombreCategoria String
+  precio          Float
+  Habitacion      Habitacion[]
+}
+
+model Cliente {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  apellidos String
+  cedula    String    @unique
+  Reserva   Reserva[]
+}
+
+model Configuracion {
+  id          Int     @id @default(autoincrement())
+  clave       String  @unique
+  valor       String
+  descripcion String?
+}
+
+model Factura {
+  id                   Int      @id @default(autoincrement())
+  idReserva            Int
+  subtotal             Float    @default(0)
+  totalIva             Float
+  total                Float    @default(0)
+  tipoCambio           Float
+  montoEfectivoColones Float    @default(0)
+  montoEfectivoDolares Float    @default(0)
+  montoTarjeta         Float    @default(0)
+  vuelto               Float    @default(0)
+  fecha                DateTime @default(now())
+  observaciones        String?
+  Reserva              Reserva  @relation(fields: [idReserva], references: [id])
+}
+
+model Habitacion {
+  id                  Int                 @id @default(autoincrement())
+  piso                Int
+  estado              String
+  idSede              Int
+  idCategoria         Int
+  CategoriaHabitacion CategoriaHabitacion @relation(fields: [idCategoria], references: [id])
+  Sede                Sede                @relation(fields: [idSede], references: [id])
+  Reserva             Reserva[]
+}
+
+model Reserva {
+  id           Int        @id @default(autoincrement())
+  idUsuario    Int?
+  idHabitacion Int
+  idCliente    Int
+  fechaReserva DateTime   @default(now())
+  fechaInicio  DateTime
+  fechaSalida  DateTime
+  Factura      Factura[]
+  Cliente      Cliente    @relation(fields: [idCliente], references: [id])
+  Habitacion   Habitacion @relation(fields: [idHabitacion], references: [id])
+  Usuario      Usuario?   @relation(fields: [idUsuario], references: [id])
+}
+
+model Rol {
+  id      Int       @id @default(autoincrement())
+  nombre  String    @unique
+  Usuario Usuario[]
+}
+
+model Sede {
+  id         Int          @id @default(autoincrement())
+  ciudad     String
+  direccion  String
+  central    Boolean      @default(false)
+  Habitacion Habitacion[]
+  Usuario    Usuario[]
+}
+
+model Usuario {
+  id                    Int        @id @default(autoincrement())
+  nombre                String
+  email                 String     @unique
+  apellidos             String
+  contrasena            String?
+  intentosFallidos      Int        @default(0)
+  idRol                 Int
+  idSede                Int?
+  isActive              Boolean    @default(false)
+  activationToken       String?    @unique
+  activationTokenExpiry DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @default(now())
+  Bitacora              Bitacora[]
+  Reserva               Reserva[]
+  Rol                   Rol        @relation(fields: [idRol], references: [id])
+  Sede                  Sede?      @relation(fields: [idSede], references: [id])
+}
