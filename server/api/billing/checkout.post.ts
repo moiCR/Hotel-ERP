@@ -10,7 +10,10 @@ export default defineEventHandler(async (event) => {
         // Fetch configs
         const configs = await db.configuracion.findMany()
         let configMap: Record<string, number> = { 'IVA': 13, 'TIPO_CAMBIO': 515 }
-        configs.forEach(c => configMap[c.clave] = parseFloat(c.valor) || configMap[c.clave])
+        configs.forEach(c => {
+            const parsed = parseFloat(c.valor)
+            if (!isNaN(parsed)) configMap[c.clave] = parsed
+        })
 
         const reserva = await db.reserva.findUnique({
             where: { id: idReserva },
@@ -19,7 +22,6 @@ export default defineEventHandler(async (event) => {
 
         if (!reserva) return { success: false, message: 'Reserva no encontrada' }
 
-        // Múltiples de facturación: el precio de la habitación * cantidad de noches
         const fechaInicio = new Date(reserva.fechaInicio);
         let fechaSalida = new Date(reserva.fechaSalida);
         const diffMs = fechaSalida.getTime() - fechaInicio.getTime();
@@ -27,18 +29,16 @@ export default defineEventHandler(async (event) => {
         if (nights <= 0) nights = 1;
 
         const subtotal = reserva.Habitacion.CategoriaHabitacion.precio * nights;
-        const totalIva = subtotal * (configMap['IVA'] / 100);
+        const totalIva = subtotal * ((configMap['IVA'] ?? 13) / 100);
         const total = subtotal + totalIva;
 
-        // Validar pago (opcionalmente podríamos ser estrictos, pero confiaremos en los datos que llegan ya consolidados para guardar)
-        // Guardar factura
         const factura = await db.factura.create({
             data: {
                 idReserva,
                 subtotal,
                 totalIva,
                 total,
-                tipoCambio: configMap['TIPO_CAMBIO'],
+                tipoCambio: configMap['TIPO_CAMBIO'] ?? 515,
                 montoEfectivoColones,
                 montoEfectivoDolares,
                 montoTarjeta,
@@ -47,7 +47,6 @@ export default defineEventHandler(async (event) => {
             }
         })
 
-        // Cambiar estado habitación a Limpieza
         await db.habitacion.update({
             where: { id: reserva.Habitacion.id },
             data: { estado: 'Limpieza' }
