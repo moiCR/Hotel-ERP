@@ -11,7 +11,7 @@ export const transporter = nodemailer.createTransport({
 
 
 export const sendActivationEmail = async (email: string, token: string, name: string) => {
-  const activationLink = `${process.env.NEXT_PUBLIC_APP_URL}/activate?token=${token}`;
+  const activationLink = `localhost:3000/activate?token=${token}`;
 
   try {
     await transporter.sendMail({

@@ -12,7 +12,6 @@ const config = ref({ IVA: 13, TIPO_CAMBIO: 515 });
 
 const selectedReserva = ref<any>(null);
 
-// Payment bindings
 const montoTarjeta = ref<number | string>('');
 const montoEfectivoUSD = ref<number | string>('');
 const montoEfectivoColones = ref<number | string>('');
