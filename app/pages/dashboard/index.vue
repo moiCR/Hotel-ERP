@@ -1,185 +1,232 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useToast } from '@/composables/useToast';
+import { Building2, Users, CalendarDays, Banknote, BarChart3, FileText, Settings, UserCircle2 } from '@lucide/vue'
 
-const toast = useToast();
+const { user, hasPermission } = useAuth()
 
-// --- Estado de los datos ---
-const loading = ref(true);
-const kpis = ref({
-    reservasHoy: 0,
-    ingresosHoy: 0,
-    ocupacionPorcentaje: 0,
-    habitacionesOcupadas: 0,
-});
-const reservasRecientes = ref([]);
-
-// --- Funciones de Fetching ---
-
-/**
- * Simula la obtención de métricas clave (KPIs)
- */
-const fetchKpis = async () => {
-    // En un entorno real, se llamaría a un endpoint /api/dashboard/kpis
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simular latencia
+const quickLinks = computed(() => {
+    const links = []
     
-    // Datos de ejemplo
-    kpis.value = {
-        reservasHoy: 12,
-        ingresosHoy: 5400.50,
-        ocupacionPorcentaje: 85,
-        habitacionesOcupadas: 45,
-    };
-};
-
-/**
- * Simula la obtención de las reservas más recientes
- */
-const fetchReservasRecientes = async () => {
-    // En un entorno real, se llamaría a un endpoint /api/dashboard/reservas-recientes
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simular latencia
-
-    // Datos de ejemplo
-    reservasRecientes.value = [
-        { id: 101, cliente: 'Juan Pérez', checkIn: 'Hoy', checkOut: 'Mañana', habitacion: '201' },
-        { id: 102, cliente: 'María Gómez', checkIn: 'Mañana', checkOut: 'Pasado Mañana', habitacion: '105' },
-        { id: 103, cliente: 'Carlos Ruiz', checkIn: 'Hoy', checkOut: 'Mañana', habitacion: '302' },
-        { id: 104, cliente: 'Laura Díaz', checkIn: 'Hoy', checkOut: 'Mañana', habitacion: '203' },
-    ];
-};
-
-// --- Ciclo de Vida ---
-onMounted(async () => {
-    try {
-        await Promise.all([
-            fetchKpis(),
-            fetchReservasRecientes()
-        ]);
-    } catch (error) {
-        toast.value('error', 'No se pudieron cargar los datos del dashboard.');
-    } finally {
-        loading.value = false;
+    if (hasPermission('reservas')) {
+        links.push({
+            name: 'Reservas',
+            description: 'Gestionar reservas y clientes',
+            icon: CalendarDays,
+            to: '/dashboard/reservations',
+            color: 'bg-blue-500/10 text-blue-400',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-blue-500/30'
+        })
     }
-});
+    
+    if (hasPermission('facturacion')) {
+        links.push({
+            name: 'Facturación',
+            description: 'Gestión de pagos y facturas',
+            icon: Banknote,
+            to: '/dashboard/billing',
+            color: 'bg-emerald-500/10 text-emerald-400',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-emerald-500/30'
+        })
+    }
+    
+    if (hasPermission('usuarios')) {
+        links.push({
+            name: 'Usuarios',
+            description: 'Administración de personal',
+            icon: Users,
+            to: '/dashboard/users',
+            color: 'bg-purple-500/10 text-purple-400',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-purple-500/30'
+        })
+    }
+    
+    if (hasPermission('hotel')) {
+        links.push({
+            name: 'Hotel',
+            description: 'Habitaciones y tarifas',
+            icon: Building2,
+            to: '/dashboard/hotel',
+            color: 'bg-orange-500/10 text-orange-400',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-orange-500/30'
+        })
+    }
+    
+    if (hasPermission('reportes')) {
+        links.push({
+            name: 'Reportes',
+            description: 'Estadísticas e informes',
+            icon: BarChart3,
+            to: '/dashboard/reports',
+            color: 'bg-pink-500/10 text-pink-400',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-pink-500/30'
+        })
+    }
+    
+    if (hasPermission('bitacora')) {
+        links.push({
+            name: 'Bitácora',
+            description: 'Registro de actividades',
+            icon: FileText,
+            to: '/dashboard/logs',
+            color: 'bg-slate-500/10 text-slate-300',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-slate-500/30'
+        })
+    }
+    
+    if (hasPermission('ajustes')) {
+        links.push({
+            name: 'Ajustes',
+            description: 'Configuración general',
+            icon: Settings,
+            to: '/dashboard/settings',
+            color: 'bg-zinc-500/10 text-zinc-400',
+            borderColor: 'border-white/5',
+            hoverBorder: 'hover:border-zinc-500/30'
+        })
+    }
+    
+    return links
+})
 </script>
 
 <template>
-    <div class="p-6 bg-gray-50 min-h-full">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard Principal</h1>
-
-        <!-- 1. KPIs (Key Performance Indicators) -->
-        <div v-if="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <div class="space-y-8 animate-fade-in w-full max-w-7xl mx-auto pb-12">
+        <!-- Header / Welcome -->
+        <div class="bg-[#161616] rounded-4xl p-8 sm:p-10 shadow-sm border border-white/5 relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 p-8 opacity-5 pointer-events-none transform rotate-12">
+                <Building2 class="w-64 h-64 text-white" />
+            </div>
             
-            <!-- Tarjeta Reservas Hoy -->
-            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 transition duration-300 hover:shadow-xl">
-                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Reservas Hoy</p>
-                <p class="text-4xl font-extrabold text-gray-900 mt-1">{{ kpis.reservasHoy }}</p>
-                <p class="text-sm text-green-500 mt-2">+2 vs ayer</p>
-            </div>
-
-            <!-- Tarjeta Ingresos Hoy -->
-            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500 transition duration-300 hover:shadow-xl">
-                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ingresos Hoy</p>
-                <p class="text-4xl font-extrabold text-gray-900 mt-1">${{ kpis.ingresosHoy.toFixed(2) }}</p>
-                <p class="text-sm text-green-500 mt-2">+15% vs meta</p>
-            </div>
-
-            <!-- Tarjeta Ocupación -->
-            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500 transition duration-300 hover:shadow-xl">
-                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ocupación</p>
-                <p class="text-4xl font-extrabold text-gray-900 mt-1">{{ kpis.ocupacionPorcentaje }}%</p>
-                <p class="text-sm text-yellow-600 mt-2">45 habitaciones ocupadas</p>
-            </div>
-
-            <!-- Tarjeta Habitaciones Disponibles -->
-            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-500 transition duration-300 hover:shadow-xl">
-                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Habitaciones Libres</p>
-                <p class="text-4xl font-extrabold text-gray-900 mt-1">{{ 100 - kpis.ocupacionPorcentaje }}%</p>
-                <p class="text-sm text-red-600 mt-2">15 habitaciones disponibles</p>
+            <div class="relative z-10">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-100 mb-4 flex items-center gap-3">
+                    Hola, {{ user?.nombre }}
+                </h1>
+                <div class="flex items-center gap-2 text-gray-400 bg-white/5 w-fit px-4 py-2 rounded-2xl border border-white/5">
+                    <UserCircle2 class="w-5 h-5 text-gray-500" />
+                    <span>Has iniciado sesión como</span>
+                    <span class="font-semibold text-gray-200 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {{ user?.rol }}
+                    </span>
+                </div>
             </div>
         </div>
 
-        <!-- 2. Contenido Principal (Widgets) -->
-        <div v-if="loading" class="text-center py-10">
-            <p class="text-xl text-gray-500">Cargando datos del dashboard...</p>
+        <!-- Quick Links -->
+        <div>
+            <h2 class="text-xl font-bold text-gray-200 mb-6 flex items-center gap-2 px-2">
+                Accesos Rápidos
+                <span class="text-sm font-normal text-gray-500">({{ quickLinks.length }} disponibles para tu rol)</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <NuxtLink 
+                    v-for="(link, index) in quickLinks" 
+                    :key="link.name"
+                    :to="link.to"
+                    class="group bg-[#161616] p-6 rounded-4xl border transition-all duration-300 hover:bg-[#202020] hover:scale-[1.02] flex flex-col items-start gap-5 cursor-pointer card-animated"
+                    :class="[link.borderColor, link.hoverBorder]"
+                    :style="`animation-delay: ${index * 80}ms;`"
+                >
+                    <div class="p-4 rounded-3xl transition-transform duration-300 group-hover:scale-110" :class="link.color">
+                        <component :is="link.icon" class="w-7 h-7" />
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-200 mb-1.5 text-lg group-hover:text-white transition-colors">{{ link.name }}</h3>
+                        <p class="text-sm text-gray-500 line-clamp-2">{{ link.description }}</p>
+                    </div>
+                </NuxtLink>
+            </div>
+        </div>
+        
+        <!-- Role Specific Cards -->
+        <div v-if="hasPermission('ajustes') || hasPermission('usuarios')" class="bg-purple-500/5 border border-purple-500/20 rounded-4xl p-8 shadow-sm hover:border-purple-500/40 transition-colors">
+            <div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                <div class="text-purple-400 bg-purple-500/10 p-4 rounded-3xl shadow-sm h-fit">
+                    <BarChart3 class="w-8 h-8" />
+                </div>
+                <div>
+                    <h3 class="text-purple-100 font-bold text-xl mb-2">Panel Administrativo</h3>
+                    <p class="text-purple-200/60 mb-5 max-w-2xl leading-relaxed">
+                        Como {{ user?.rol }}, tienes permisos administrativos. Puedes ver estadísticas, 
+                        gestionar usuarios, configurar el hotel y auditar las acciones en la bitácora.
+                    </p>
+                    <NuxtLink v-if="hasPermission('reportes')" to="/dashboard/reports" class="inline-flex items-center justify-center rounded-2xl text-sm font-bold py-3 px-6 bg-purple-600 text-white hover:bg-purple-500 shadow-md hover:shadow-lg transition-all duration-200">
+                        Ver Reportes
+                    </NuxtLink>
+                </div>
+            </div>
         </div>
 
-        <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Columna 1: Tareas Pendientes / Quick Actions -->
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Tareas Pendientes</h2>
-                <div class="space-y-4">
-                    <!-- Tarea 1 -->
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0 bg-red-500/10 text-red-600 rounded-full p-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">Check-in Pendiente</p>
-                            <p class="text-xs text-gray-500">Cliente: Juan Pérez (Hab. 201)</p>
-                        </div>
-                    </div>
-                    <!-- Tarea 2 -->
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0 bg-yellow-500/10 text-yellow-600 rounded-full p-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">Factura por Emitir</p>
-                            <p class="text-xs text-gray-500">Reserva ID 102 (Pendiente de pago)</p>
-                        </div>
-                    </div>
-                    <!-- Tarea 3 -->
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0 bg-blue-500/10 text-blue-600 rounded-full p-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">Actualizar Inventario</p>
-                            <p class="text-xs text-gray-500">Se detectó baja cantidad en la Sede Principal.</p>
-                        </div>
-                    </div>
+        <div v-else-if="hasPermission('facturacion')" class="bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-8 shadow-sm hover:border-emerald-500/40 transition-colors">
+            <div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                <div class="text-emerald-400 bg-emerald-500/10 p-4 rounded-3xl shadow-sm h-fit">
+                    <Banknote class="w-8 h-8" />
                 </div>
-                <button class="mt-6 w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150">
-                    Ver Todas las Tareas
-                </button>
+                <div>
+                    <h3 class="text-emerald-100 font-bold text-xl mb-2">Centro de Facturación</h3>
+                    <p class="text-emerald-200/60 mb-5 max-w-2xl leading-relaxed">
+                        Tienes acceso a la gestión de cobros y emisión de comprobantes.
+                        Revisa los pagos pendientes y procesa las facturas de los huéspedes de forma segura.
+                    </p>
+                    <NuxtLink to="/dashboard/billing" class="inline-flex items-center justify-center rounded-2xl text-sm font-bold py-3 px-6 bg-emerald-600 text-white hover:bg-emerald-500 shadow-md hover:shadow-lg transition-all duration-200">
+                        Ir a Facturación
+                    </NuxtLink>
+                </div>
             </div>
+        </div>
 
-            <!-- Columna 2: Resumen de Reservas Recientes -->
-            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Reservas Recientes</h2>
-                
-                <div v-if="reservasRecientes.length === 0" class="text-center py-10 text-gray-500">
-                    Aún no hay reservas registradas.
+        <div v-else-if="hasPermission('reservas')" class="bg-blue-500/5 border border-blue-500/20 rounded-4xl p-8 shadow-sm hover:border-blue-500/40 transition-colors">
+            <div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                <div class="text-blue-400 bg-blue-500/10 p-4 rounded-3xl shadow-sm h-fit">
+                    <CalendarDays class="w-8 h-8" />
                 </div>
-
-                <div v-else class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Habitación</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-In</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="item in reservasRecientes" :key="item.id">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.id }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.cliente }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-medium">{{ item.habitacion }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.checkIn }} - {{ item.checkOut }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <vButton class="mr-2 text-green-600 hover:text-green-900" @click="/* Ver Detalles */">Ver</vButton>
-                                    <vButton class="text-indigo-600 hover:text-indigo-900" @click="/* Check-in */">Check-in</vButton>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div>
+                    <h3 class="text-blue-100 font-bold text-xl mb-2">Centro de Recepción</h3>
+                    <p class="text-blue-200/60 mb-5 max-w-2xl leading-relaxed">
+                        Tu función incluye gestionar las reservas y la atención a los huéspedes. 
+                        Desde aquí puedes ver la disponibilidad, registrar llegadas (check-in) y salidas (check-out).
+                    </p>
+                    <NuxtLink to="/dashboard/reservations" class="inline-flex items-center justify-center rounded-2xl text-sm font-bold py-3 px-6 bg-blue-600 text-white hover:bg-blue-500 shadow-md hover:shadow-lg transition-all duration-200">
+                        Ir a Reservas
+                    </NuxtLink>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-animated {
+    opacity: 0;
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+    }
+    to { 
+        opacity: 1; 
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+</style>

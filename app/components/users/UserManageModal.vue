@@ -107,7 +107,6 @@ watch(
     () => [props.isOpen, props.user],
     ([isOpen, user]) => {
         if (isOpen && user) {
-            // Find correct IDs based on names if IDs are missing from the frontend object
             let rId = (user as User).idRol?.toString() || "";
             if (!rId) {
                 const matchedRole = roles.value.find(

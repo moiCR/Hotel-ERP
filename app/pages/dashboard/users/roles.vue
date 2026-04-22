@@ -12,6 +12,7 @@ import {
 interface Rol {
     id: number;
     nombre: string;
+    permisos: string[];
 }
 
 definePageMeta({
@@ -35,12 +36,24 @@ const createAnchorEl = computed(
     () => createBtnRef.value?.$el || createBtnRef.value,
 );
 
+// Manage modal
+const isManageModalOpen = ref(false);
+const rolToManage = ref<Rol | null>(null);
+const manageOriginEl = ref<HTMLElement | null>(null);
+
+const openManageModal = (rol: Rol, event: Event) => {
+    rolToManage.value = rol;
+    manageOriginEl.value = event.currentTarget as HTMLElement;
+    isManageModalOpen.value = true;
+};
+
 // Delete modal
 const isDeleteModalOpen = ref(false);
 const rolToDelete = ref<Rol | null>(null);
 const deleteOriginEl = ref<HTMLElement | null>(null);
 
 const confirmDeleteAction = (rol: Rol, event: Event) => {
+    event.stopPropagation();
     rolToDelete.value = rol;
     deleteOriginEl.value = event.currentTarget as HTMLElement;
     isDeleteModalOpen.value = true;
@@ -124,6 +137,14 @@ onMounted(async () => {
         @created="fetchRoles"
     />
 
+    <UsersRolManageModal
+        :is-open="isManageModalOpen"
+        :rol="rolToManage"
+        :origin-el="manageOriginEl"
+        @close="isManageModalOpen = false"
+        @updated="fetchRoles"
+    />
+
     <UsersRolConfirmDeleteModal
         :is-open="isDeleteModalOpen"
         :rol="rolToDelete"
@@ -146,7 +167,8 @@ onMounted(async () => {
             <div
                 v-for="(rol, index) in filteredRoles"
                 :key="rol.id"
-                class="role-card-animated group relative bg-[#161616] rounded-3xl p-6 flex flex-col gap-4 hover:bg-[#202020] hover:scale-[1.02] transition-all duration-300"
+                @click="openManageModal(rol, $event)"
+                class="role-card-animated group relative bg-[#161616] rounded-3xl p-6 flex flex-col gap-4 hover:bg-[#202020] hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-white/5"
                 :style="`animation-delay: ${index * 60}ms;`"
             >
                 <!-- Header: icon + id / delete btn -->
@@ -193,12 +215,12 @@ onMounted(async () => {
                 <!-- Footer -->
                 <div class="h-px bg-white/5 mt-auto" />
                 <div class="flex items-center justify-between">
-                    <span
-                        class="text-[10px] text-gray-600 uppercase tracking-widest"
-                        >Rol del sistema</span
-                    >
+                    <span class="text-[10px] text-gray-600 uppercase tracking-widest">
+                        {{ rol.permisos?.length || 0 }} permisos asignados
+                    </span>
                     <div
-                        class="w-1.5 h-1.5 rounded-full bg-emerald-500/60"
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="(rol.permisos?.length || 0) > 0 ? 'bg-emerald-500/60' : 'bg-gray-500/60'"
                     ></div>
                 </div>
             </div>

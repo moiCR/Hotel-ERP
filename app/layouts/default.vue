@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Sidebar from "~/components/sidebar/Sidebar.vue";
-const { fetchUser, checkRole } = useAuth();
+const { fetchUser, checkRole, hasPermission } = useAuth();
 
 await fetchUser();
 
@@ -19,48 +19,49 @@ const route = useRoute();
             />
 
             <SidebarItem
-                v-if="checkRole(['Administrador', 'Gerente'])"
+                v-if="hasPermission('usuarios')"
                 to="/dashboard/users"
                 :active="route.path.startsWith('/dashboard/users')"
                 text="Usuarios"
             />
 
             <SidebarItem
-                v-if="checkRole(['Administrador', 'Gerente'])"
+                v-if="hasPermission('hotel')"
                 to="/dashboard/hotel"
                 :active="route.path.startsWith('/dashboard/hotel')"
                 text="Hotel"
             />
 
             <SidebarItem
+                v-if="hasPermission('reservas')"
                 to="/dashboard/reservations"
                 :active="route.path.startsWith('/dashboard/reservations')"
                 text="Reservas"
             />
 
             <SidebarItem
-                v-if="checkRole(['Administrador', 'Gerente', 'Cajero'])"
+                v-if="hasPermission('facturacion')"
                 to="/dashboard/billing"
                 :active="route.path.startsWith('/dashboard/billing')"
                 text="Facturación"
             />
 
             <SidebarItem
-                v-if="checkRole(['Administrador', 'Gerente'])"
+                v-if="hasPermission('reportes')"
                 to="/dashboard/reports"
                 :active="route.path.startsWith('/dashboard/reports')"
                 text="Reportes"
             />
 
             <SidebarItem
-                v-if="checkRole(['Administrador', 'Gerente'])"
+                v-if="hasPermission('bitacora')"
                 to="/dashboard/logs"
                 :active="route.path.startsWith('/dashboard/logs')"
                 text="Bitácora"
             />
 
             <SidebarItem
-                v-if="checkRole(['Administrador', 'Gerente'])"
+                v-if="hasPermission('ajustes')"
                 to="/dashboard/settings"
                 :active="route.path.startsWith('/dashboard/settings')"
                 text="Ajustes"

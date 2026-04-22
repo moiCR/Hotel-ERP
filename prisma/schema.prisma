@@ -78,9 +78,10 @@ model Reserva {
 }
 
 model Rol {
-  id      Int       @id @default(autoincrement())
-  nombre  String    @unique
-  Usuario Usuario[]
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique
+  permisos String[]  @default([])
+  Usuario  Usuario[]
 }
 
 model Sede {

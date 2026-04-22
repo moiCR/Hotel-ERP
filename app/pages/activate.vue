@@ -16,7 +16,7 @@ const anchorEl = computed(() => btnRef.value?.$el || btnRef.value);
 </script>
 
 <template>
-    <div class="relative w-[100vw] h-[100vh] bg-[#0a0a0a] overflow-hidden flex items-center justify-center font-sans">
+    <div class="relative w-dvw h-dvh bg-[#0a0a0a] overflow-hidden flex items-center justify-center font-sans">
         <ActivateModal
             :is-open="isModalOpen"
             :origin-el="anchorEl"

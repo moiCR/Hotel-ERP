@@ -3,7 +3,7 @@ import { db } from '../../utils/db'
 export default defineEventHandler(async (event) => {
     try {
         const body = await readBody(event);
-        const { nombre } = body;
+        const { nombre, permisos } = body;
 
         if (!nombre || !nombre.trim()) {
             return { success: false, message: 'El nombre del rol es obligatorio.' }
@@ -15,7 +15,10 @@ export default defineEventHandler(async (event) => {
         }
 
         const rol = await db.rol.create({
-            data: { nombre: nombre.trim() }
+            data: { 
+                nombre: nombre.trim(),
+                permisos: Array.isArray(permisos) ? permisos : []
+            }
         });
 
         return { success: true, message: 'Rol creado correctamente.', rol }
