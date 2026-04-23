@@ -177,8 +177,8 @@ erp-hotel-nuxt/
 
 ```bash
 # 1. Clonar el repositorio
-git clone <url-del-repositorio>
-cd erp-hotel-nuxt
+git clone https://github.com/moiCR/Hotel-ERP
+cd Hotel-ERP
 
 # 2. Instalar dependencias
 pnpm install
